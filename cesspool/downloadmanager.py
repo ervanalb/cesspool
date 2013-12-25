@@ -11,4 +11,5 @@ class DownloadManager:
 	def instantiate(self,pool,type,args):
 		if 'pool' in args or 'uid' in args:
 			raise Exception('arg list cannot contain pool or uid')
-		return dict([(dlr.TYPE_STRING,dlr) for dlr in self.downloaders])[type].instantiate(pool,self.get_uid(),args)
+		uid=self.get_uid()
+		return dict([(dlr.TYPE_STRING,dlr) for dlr in self.downloaders])[type].instantiate(pool,uid,args)

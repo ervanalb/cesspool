@@ -4,11 +4,13 @@ import time
 from downloadmanager import DownloadManager
 from downloaders.torrent import TorrentDownloader
 
-DOWNLOADERS=[TorrentDownloader()]
 
 class Pool(object):
+	PARAMS={'directory':'../downloads','web_path':'downloads'}
+	DOWNLOADERS=[TorrentDownloader()]
+
 	def __init__(self):
-		self.dm=DownloadManager(DOWNLOADERS)
+		self.dm=DownloadManager(self.DOWNLOADERS)
 		self.pool=[]
 		self.lock=threading.Semaphore()
 
@@ -38,14 +40,14 @@ class Pool(object):
 		return [dlr.TYPE_STRING for dlr in dm.downloaders]
 
 	def describe_download(self,uid):
-                return find_dl(uid)._describe()
+                return self.find_dl(uid)._describe()
 
 	def rm(self,uid):
-                return find_dl(uid).rm()
+                return self.find_dl(uid).rm()
 
 	def find_dl(self,uid):
 		uid=int(uid)
-		d=dict([(dl.uid,dl) for dl in pool])
+		d=dict([(dl.uid,dl) for dl in self.pool])
 		if uid not in d:
 			raise Exception("Download identifier does not exist")
 		return d[uid]
@@ -53,10 +55,6 @@ class Pool(object):
 	# Runs a set of commands. Pool is guarenteed to not change during them.
 	def doMultipleCommandsAsync(self,commands):
 		return self.sync(lambda:[self.doCommand(cmd) for cmd in commands])
-
-	# Calls next() function once lock is acquired
-	def nextAsync(self):
-		return self.sync(self.next)
 
 	# Acquires this object's lock and executes the given cmd
 	def sync(self,cmd):
@@ -74,7 +72,7 @@ class Pool(object):
 		self.sync(lambda:self.removeMe(uid))
 
 	def removeMe(self,uid):
-		self.queue=[obj for obj in self.queue if obj.uid != uid]
+		self.pool=[obj for obj in self.pool if obj.uid != uid]
 
 	# Parse and run a command
 	def doCommand(self,line):
@@ -102,6 +100,7 @@ class Pool(object):
 		try:
 			result=f(self,**args)
 		except Exception as e:
+			raise
 			return errorPacket(str(e))
 
 		return goodPacket(result)

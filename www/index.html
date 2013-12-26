@@ -1,1 +1,88 @@
-hi
+<html>
+<head>
+    <title>Cesspool</title>
+    <script type="text/javascript" src="./assets/underscore.js"></script>
+    <script type="text/javascript" src="./assets/underscore.string.min.js"></script>
+    <script type="text/javascript" src="./assets/jquery.min.js"></script>
+    <script type="text/javascript" src="./assets/jquery-ui.js"></script>
+    <script type="text/javascript" src="./assets/backbone.js"></script>
+    <script type="text/javascript" src="./assets/handlebars.js"></script>
+    <script type="text/javascript">
+        window.no_autorefresh = false;
+        window.DE = false;
+    </script>
+    <script class="torrent-template" type="text/x-handlebars-template">
+        <div>
+            {{#if error}}
+                Error: {{ error }}
+            {{/if}}
+            {{#if_eq status eq='running'}}
+                Status: {{ torrent_status }}
+                Download Progress: {{ progress }}
+            {{else}}
+                Status: {{ status }}
+            {{/if_eq}}
+        </div>
+
+        {{#if_eq status eq='complete'}}
+            <a href="/downloads/{{ uid }}/">Get it</a>
+        {{/if_eq}}
+        <!-- 
+        {{ uid  }}
+        {{ url }} 
+        {{ type }} 
+        -->
+    </script>
+    <script type="text/javascript" src="./assets/cesspool.js"></script>
+    <link rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css">
+    <style type="text/css">.de-only { display: none; }</style>
+</head>
+<body>
+    <div class="content">
+        <h1 class="title">Cesspool</h1>
+
+        <div class="controls">
+            <a href="#" >Help</a>
+        </div>
+
+        <div class="control">
+            <noscript>
+                <h2>Looks like you're not running javascript.</h2>
+                <div>
+                    Cesspool sadly requires javascript to do anything useful.
+                </div>
+            </noscript>
+
+            <h2>Torrent</h2>
+            <form action="#" method="GET" autocomplete="off" class="torrent-form">
+                <input type="text" class="torrent-link"> <input type="submit" class="submit disconnect-hide">
+            </form>
+
+            <!--
+            <h2>Upload</h2>
+            <form action="/upload/api" method="POST" autocomplete="off" enctype="multipart/form-data" id="uploadform">
+                <span> <input type="file" name="upfile" class="uploadfile" multiple> </span>
+                <input type="submit" class="notquite-addsubmit disconnect-hide" id="addsubmit_upload">
+            </form>
+            <div class="upload-progress">
+                <div class="upload-progress-bar">
+            </div>
+            -->
+        </div>
+        <!-- Search results -->
+        <!--
+        <div class="results disconnect-hide"> </div>
+        -->
+
+        <div class="cesspool">
+            <ul class="pool"></ol>
+        </div>
+
+        <!-- Disconnect notification -->
+        <div class="reconnecting disconnect-show" style="display: none;">
+            <h2>Lost connection!</h2>
+            Uh oh! Hang tight while we try to reconnect...
+        </div>
+    </div>
+</body>
+</html>

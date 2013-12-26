@@ -1,42 +1,50 @@
-#!/usr/bin/env python
-import hashlib
-import hmac
-import json
-import sys
+#!/usr/bin/python
+
+from werkzeug.wrappers import Request, Response
+from werkzeug.wsgi import SharedDataMiddleware
 import os
+from werkzeug.wrappers import Request as RequestBase
+from werkzeug.contrib.wrappers import JSONRequestMixin
+from werkzeug.exceptions import BadRequest
 
 from pool import Pool
+from simplejson import dumps
 
-from webserver import Webserver,HTTPException
+class Request(RequestBase, JSONRequestMixin):
+	pass
 
-HOST_NAME = ''
-PORT_NUMBER = 9500
+class CPServer(object):
+	def __init__(self):
+		self.pool=Pool()
 
-class CPServer(Webserver):
-	def __init__(self,debug=False):
-		self.debug=debug
+	def dispatch_request(self,request):
+		#if not request.json:
+		#	return BadRequest('No JSON found!')
+		result=self.pool.doMultipleCommandsAsync(request.json)
+		return Response(dumps(result),content_type='text/json')
 
-		self.pool = Pool()
+	def wsgi_app(self, environ, start_response):
+		request = Request(environ)
+		response = self.dispatch_request(request)
+		return response(environ, start_response)
 
-		Webserver.__init__(self,HOST_NAME, PORT_NUMBER)
+	def __call__(self, environ, start_response):
+		return self.wsgi_app(environ,start_response)
 
-	def get(self,form_data,path):
-		if self.debug:
-			p=path.path
-			if p=='/' or p=='':
-				p='/index.html'
-			try:
-				fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),'../www',p[1:])
-				return open(fn)
-			except Exception:
-				raise HTTPException(404,'File not found')
-		else:
-			raise NotImplementedError
+if __name__=='__main__':
+	from twisted.web.server import Site
+	from twisted.web.wsgi import WSGIResource
+	from twisted.internet import reactor
+	from twisted.web.static import File
 
-	def json_transaction(self,json_data):
-        	return self.pool.doMultipleCommandsAsync(json_data)
+	app=CPServer()
 
-if __name__ == '__main__':
-	debug=('--debug' in sys.argv)
-	cps=CPServer(debug)
-	cps.run()
+	local_root=os.path.join(os.path.dirname(__file__), '../')
+
+	root = File(os.path.join(local_root,'www'))
+	root.putChild("cmd", WSGIResource(reactor, reactor.getThreadPool(), app))
+	root.putChild("downloads", File(os.path.join(local_root,'downloads')))
+
+	reactor.listenTCP(9500, Site(root))
+	reactor.run()
+

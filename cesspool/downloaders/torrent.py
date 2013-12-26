@@ -66,7 +66,7 @@ class TorrentDownloader(Downloader):
 
 	def add_torrent(self,child):
 		params={'save_path': child.dlpath}
-		child.handle=lt.add_magnet_uri(self.session,child.url,params)
+		child.handle=lt.add_magnet_uri(self.session,str(child.url),params)
 
 	def remove_torrent(self,child):
 		self.session.remove_torrent(child.handle)

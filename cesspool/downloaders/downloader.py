@@ -20,7 +20,7 @@ class Download:
 		self.webpath=os.path.join(self.pool.PARAMS['web_path'],str(self.uid))
 		if os.path.isdir(self.dlpath):
 			shutil.rmtree(self.dlpath)
-		os.mkdir(self.dlpath)
+		os.makedirs(self.dlpath)
 
 	def rmdl(self):
 		shutil.rmtree(self.dlpath)

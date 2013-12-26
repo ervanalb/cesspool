@@ -8,7 +8,8 @@ from werkzeug.contrib.wrappers import JSONRequestMixin
 from werkzeug.exceptions import BadRequest
 
 from pool import Pool
-from simplejson import dumps
+try: from simplejson import dumps
+except ImportError: from json import dumps
 
 class Request(RequestBase, JSONRequestMixin):
 	pass

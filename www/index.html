@@ -9,10 +9,13 @@
     <script type="text/javascript" src="./assets/handlebars.js"></script>
     <script type="text/javascript">
         window.no_autorefresh = false;
-        window.DE = false;
+        window.DE = true;
     </script>
     <script class="torrent-template" type="text/x-handlebars-template">
-        <div>
+        {{#if_eq status eq='complete'}}
+            <a href="/downloads/{{ uid }}/">Get it</a>
+        {{/if_eq}}
+        <span style="float: right;">
             {{#if error}}
                 Error: {{ error }}
             {{/if}}
@@ -22,11 +25,8 @@
             {{else}}
                 Status: {{ status }}
             {{/if_eq}}
-        </div>
+        </span>
 
-        {{#if_eq status eq='complete'}}
-            <a href="/downloads/{{ uid }}/">Get it</a>
-        {{/if_eq}}
         <!-- 
         {{ uid  }}
         {{ url }} 
@@ -35,54 +35,75 @@
     </script>
     <script type="text/javascript" src="./assets/cesspool.js"></script>
     <link rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css">
-    <style type="text/css">.de-only { display: none; }</style>
+    <link rel="stylesheet" href="./assets/cesspool.css">
+    <style type="text/css">.bb-only { display: none; }</style>
 </head>
 <body>
-    <div class="content">
-        <h1 class="title">Cesspool</h1>
-
-        <div class="controls">
-            <a href="#" >Help</a>
-        </div>
-
-        <div class="control">
-            <noscript>
-                <h2>Looks like you're not running javascript.</h2>
-                <div>
-                    Cesspool sadly requires javascript to do anything useful.
+        <div class="container">
+            <h1 class="title">Cesspool</h1>
+            <div class="whitebox add">
+                <form action="#" method="GET" autocomplete="off" class="torrent-form">
+                    <input placeholder="Enter torrent link here" type="text" class="add torrent-link"> 
+                    <!-- <input type="submit" class="submit disconnect-hide"> -->
+                </form>
+                <!--
+                <div class="button upload"></div>
+                <div class="button submit"></div>
+                <div class="results">
+                    <ul class="suggestions">
+                        <li><a href="#suggestion">Suggestion!!</a></li>
+                        <li><a href="#suggestion">Suggestion!!</a></li>
+                        <li><a href="#suggestion">Suggestion!!</a></li>
+                        <li><a href="#suggestion">Suggestion!!</a></li>
+                        <li><a href="#suggestion">Suggestion!!</a></li>
+                    </ul>
                 </div>
-            </noscript>
-
-            <h2>Torrent</h2>
-            <form action="#" method="GET" autocomplete="off" class="torrent-form">
-                <input type="text" class="torrent-link"> <input type="submit" class="submit disconnect-hide">
-            </form>
-
+                -->
+            </div>
             <!--
-            <h2>Upload</h2>
-            <form action="/upload/api" method="POST" autocomplete="off" enctype="multipart/form-data" id="uploadform">
-                <span> <input type="file" name="upfile" class="uploadfile" multiple> </span>
-                <input type="submit" class="notquite-addsubmit disconnect-hide" id="addsubmit_upload">
-            </form>
-            <div class="upload-progress">
-                <div class="upload-progress-bar">
+            <div class="whitebox current">
+                <div class="padder">
+                    <div class="current current-track">Current track title</div>
+                    <div class="progress-bar">
+                        <div class="bar-empty">
+                            <div class="bar-complete"></div>
+                        </div>
+                        <div class="time total-time">4:13</div>
+                        <div class="time current-time">1:23</div>
+                    </div>
+                </div>
+            </div>
+            <div class="invisibox dashboard">
+                <a class="control restart"></a>
+                <a class="control rewind"></a>
+                <a class="control speed-1x"></a>
+                <a class="control ctrl-large pause"></a>
+                <a class="control next"></a>
+                <div class="control volume ui-slider">
+                    <a class="volume-icon"></a>
+                    <span class="ui-slider-handle"></span>
+                </div>
             </div>
             -->
+            <div class="whitebox pool">
+                <div class="padder">
+                    <ul class="pool"></ol>
+                    <!--
+                    <div class="entry">
+                        <div class="rm"></div>
+                        Name of the item
+                    </div>
+                    <div class="entry">
+                        <div class="rm"></div>
+                        Name of the item
+                    </div>
+                    <div class="entry">
+                        <div class="rm"></div>
+                        Name of the item
+                    </div>
+                    -->
+                </div>
+            </div>
         </div>
-        <!-- Search results -->
-        <!--
-        <div class="results disconnect-hide"> </div>
-        -->
-
-        <div class="cesspool">
-            <ul class="pool"></ol>
-        </div>
-
-        <!-- Disconnect notification -->
-        <div class="reconnecting disconnect-show" style="display: none;">
-            <h2>Lost connection!</h2>
-            Uh oh! Hang tight while we try to reconnect...
-        </div>
-    </div>
 </body>
 </html>

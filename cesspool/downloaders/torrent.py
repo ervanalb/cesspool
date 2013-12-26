@@ -14,6 +14,11 @@ class Torrent(Download,threading.Thread):
 		self.running=False
 		self.torrent_status=None
 		self.progress=0.
+		self.t_name=None
+		self.started=time.time()
+		self.finished=None
+		self.uploaded=0
+		self.downloaded=0
 
 		self.mkdl()
 
@@ -29,11 +34,16 @@ class Torrent(Download,threading.Thread):
 	def run(self):
 		torrent_states=['queued', 'checking', 'downloading metadata', 'downloading', 'finished', 'seeding', 'allocating']
 		while self.running:
+			if self.handle.has_metadata():
+				self.t_name=self.handle.get_torrent_info().name()
 			stat=self.handle.status()
 			self.torrent_status=torrent_states[stat.state]
 			self.progress=stat.progress
-			if self.torrent_status=='seeding':
+			self.uploaded=stat.total_payload_upload
+			self.downloaded=stat.total_payload_download
+			if self.torrent_status=='seeding' and self.finished is None:
 				self.status='complete'
+				self.finished=time.time()
 			time.sleep(1)
 
 		self.parent.remove_torrent(self)
@@ -55,6 +65,11 @@ class Torrent(Download,threading.Thread):
 			"error":self.error,
 			"torrent_status":self.torrent_status,
 			"progress":self.progress,
+			"name":self.t_name,
+			"started":self.started,
+			"finished":self.finished,
+			"upload":self.uploaded,
+			"download":self.downloaded,
 		}
 
 class TorrentDownloader(Downloader):

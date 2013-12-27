@@ -4,24 +4,39 @@ import time
 from downloadmanager import DownloadManager
 from downloaders.torrent import TorrentDownloader
 
+import json
 
 class Pool(object):
-	PARAMS={'directory':'../downloads','web_path':'downloads'}
-	DOWNLOADERS=[TorrentDownloader()]
+	params={'directory':'../downloads','web_path':'downloads'}
+	downloaders=[TorrentDownloader()]
 
 	def __init__(self):
-		self.dm=DownloadManager(self.DOWNLOADERS)
+		self.uid=0
 		self.pool=[]
 		self.lock=threading.Semaphore()
 
+	def restore_state(self,state):
+		self.uid=state['uid']
+		dlrs=state['downloaders']
+		pool=state['pool']
+		d=dict([(dlr.TYPE_STRING,dlr) for dlr in self.downloaders])
+		for (name,dlr_state) in dlrs.iteritems():
+			if name in d:
+				d[name].restore_state(dlr_state)
+		self.pool=[self.reinstantiate(dl_state) for dl_state in pool]
+
+	def get_state(self):
+		dlrs=dict([(dlr.TYPE_STRING,dlr.get_state()) for dlr in self.downloaders])
+		pool=[dl._get_state() for dl in self.pool]
+		return {'uid':self.uid,'downloaders':dlrs,'pool':pool}
+
 	def save_state(self,filename):
 		with open(filename,'w') as outfile:
-			json.dump([dl.get_state() for dl in pool],outfile)
+			json.dump(self.get_state(),outfile)
 
 	def load_state(self,filename):
 		with open(filename,'r') as infile:
-			pool_state=json.load(infile)
-			pool=[self.dm.restore_state(s) for s in pool_state]
+			self.restore_state(json.load(infile))
 
 	# pool command
 	def get_pool(self):
@@ -29,7 +44,7 @@ class Pool(object):
 
 	# add command
 	def add(self,type,args={}):
-		dl_inst=self.dm.instantiate(self,type,args)
+		dl_inst=self.instantiate(type,args)
 		self.pool.append(dl_inst)
 		return {'uid':dl_inst.uid}
 
@@ -37,7 +52,7 @@ class Pool(object):
 		return self.dm.tell(self.find_dl(uid),cmd,args)
 
 	def available_downloaders(self):
-		return [dlr.TYPE_STRING for dlr in dm.downloaders]
+		return [dlr.TYPE_STRING for dlr in self.downloaders]
 
 	def describe_download(self,uid):
                 return self.find_dl(uid)._describe()
@@ -104,6 +119,22 @@ class Pool(object):
 			return errorPacket(str(e))
 
 		return goodPacket(result)
+
+	def get_uid(self):
+		u=self.uid
+		self.uid+=1
+		return u
+
+	def instantiate(self,type,args):
+		if 'pool' in args or 'uid' in args:
+			raise Exception('arg list cannot contain pool or uid')
+		uid=self.get_uid()
+		return dict([(dlr.TYPE_STRING,dlr) for dlr in self.downloaders])[type].instantiate(self,uid,args)
+
+	def reinstantiate(self,state):
+		type=state['type']
+		uid=state['uid']
+		return dict([(dlr.TYPE_STRING,dlr) for dlr in self.downloaders])[type].reinstantiate(self,uid,state)
 
 	commands={
 		'rm':rm,

@@ -211,7 +211,7 @@ var DownloadPool = Backbone.Collection.extend({
 });
 
 var DownloadView = Backbone.View.extend({
-    act_template: Handlebars.compile("<a href='#' class='btn rm de-only'></a>{{{ html }}}<a href='#' class='btn rm bb-only'>rm</a>"),
+    act_template: Handlebars.compile("{{{ html }}}<a href='#' class='btn rm'>rm</a>"),
     events: {
         "click .rm": "remove",
         //"click .cmd": "cmd",
@@ -222,6 +222,14 @@ var DownloadView = Backbone.View.extend({
         this.listenTo(this.model, "change", this.render);
         this.render();
         return this;
+    },
+    updateProgress : function(){
+        var $progbar = this.$el.find(".progress-bar");
+        if($progbar){
+            var progress = this.model.get("progress") || 0.0;
+            console.log({width: $progbar.parent().width() * progress + "px"});
+            $progbar.animate({width: $progbar.parent().width() * progress + "px"});
+        }
     },
     render: function(ev){
         this.$el.html(this.act_template({

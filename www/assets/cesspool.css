@@ -84,6 +84,12 @@ h1 {
     font-size: 10px;
     float: right;
 }
+.complete {
+    /*font-weight: bold;*/
+}
+.in-progress {
+    font-style: italic;
+}
 .pool .rm {
 	background-image: url('images/rm.png');
 	background-size: auto 10px;

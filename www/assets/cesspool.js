@@ -36,10 +36,24 @@ Handlebars.registerHelper('add', function(x, options){
     return v;
 });
 
+Handlebars.registerHelper('round', function(x, options){
+    var dp = parseInt(options.hash.dp);
+    x = parseFloat(x);
+    if(x){
+        return x.toFixed(dp);
+    }else{
+        return 0;
+    }
+});
+
+
 Handlebars.registerHelper('percent', function(x, options){
     var of = parseInt(options.hash.of);
     x = parseInt(x);
-    if(of && x){
+    if(!of){
+        of = 1;
+    }
+    if(x){
         return Math.floor(x / of * 100);
     }else{
         return 0;
@@ -140,14 +154,15 @@ function lostConnection(){
 function authenticate(cb){
     var doAuth = function(){
         // Auth & get capabilities
-        console.log("trying to auth");
+        console.log("Trying to authenticate...");
         deferQuery({cmd: "pool"}, function(pool){
             cb(pool);
         });
         runQueries(function(){
             //cb(caps);
+            console.log("Authenticated!");
         }, function(){
-            console.log("unable to auth");
+            console.log("Unable to authenticate. Trying again in 2 seconds.");
             window.setTimeout(doAuth, 2000);
         });
     };
@@ -179,6 +194,7 @@ var Download = Backbone.Model.extend({
     },
     parse: function(resp, options){
         if(resp){
+            /*
             var attrs = {
                 status: resp.status,
                 uid: resp.uid,
@@ -189,6 +205,11 @@ var Download = Backbone.Model.extend({
                 type: resp.type
             }
             return attrs;
+            */
+            if(resp.upload && resp.download && !resp.ratio){
+                resp.ratio = resp.upload / resp.download;
+            }
+            return resp;
         }else{
             return {};
         }
@@ -211,7 +232,7 @@ var DownloadPool = Backbone.Collection.extend({
 });
 
 var DownloadView = Backbone.View.extend({
-    act_template: Handlebars.compile("{{{ html }}}<a href='#' class='btn rm'>rm</a>"),
+    act_template: function(x){ return x.html; }, //Handlebars.compile("{{{ html }}}"),
     events: {
         "click .rm": "remove",
         //"click .cmd": "cmd",
@@ -222,14 +243,6 @@ var DownloadView = Backbone.View.extend({
         this.listenTo(this.model, "change", this.render);
         this.render();
         return this;
-    },
-    updateProgress : function(){
-        var $progbar = this.$el.find(".progress-bar");
-        if($progbar){
-            var progress = this.model.get("progress") || 0.0;
-            console.log({width: $progbar.parent().width() * progress + "px"});
-            $progbar.animate({width: $progbar.parent().width() * progress + "px"});
-        }
     },
     render: function(ev){
         this.$el.html(this.act_template({

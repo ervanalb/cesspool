@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-from werkzeug.wrappers import Request, Response
-from werkzeug.wsgi import SharedDataMiddleware
-import os
+from werkzeug.wrappers import Response
 from werkzeug.wrappers import Request as RequestBase
 from werkzeug.contrib.wrappers import JSONRequestMixin
 from werkzeug.exceptions import BadRequest
+import os
 
 from pool import Pool
 try: from simplejson import dumps

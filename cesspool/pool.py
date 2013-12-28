@@ -1,7 +1,6 @@
 import threading
 import time
 
-from downloadmanager import DownloadManager
 from downloaders.torrent import TorrentDownloader
 
 import json

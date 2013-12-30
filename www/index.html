@@ -17,6 +17,10 @@
             <a href="{{ url }}">(torrent)</a>
             (ratio: {{ round ratio dp=2}})
         {{/if_eq}}
+        {{#if_eq status eq='error'}}
+            <strong>Error: {{ error }}</strong>
+            <a class="get-it error" href="/downloads/{{ uid }}/">{{ name }}</a>
+        {{/if_eq}}
         <a href="#" class="rm">&nbsp;</a>
         {{#if_eq status eq="running"}}
             <a class="get-it in-progress" href="/downloads/{{ uid }}/">{{ name }}</a>

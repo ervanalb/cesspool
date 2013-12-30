@@ -186,7 +186,7 @@ var Download = Backbone.Model.extend({
             deferQuery({cmd: "describe", args: {uid: this.id}}, options.success, options.error);
         }else if(method == "delete"){
             console.log("deleting", model)
-            deferQuery({cmd: "rm", uid: this.id});
+            deferQuery({cmd: "rm", args: {uid: this.id}});
         }else{
             console.log("ERROR:", "Unable to perform action on download:" + method);
         }

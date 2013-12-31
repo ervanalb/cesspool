@@ -103,16 +103,16 @@ class Torrent(Download,threading.Thread):
 			time.sleep(1)
 
 		self.parent.remove_torrent(self)
-		self.delete()
+		self.rmdl()
+		self.pool.removeMeAsync(self.uid)
+		
 
 	def rm(self):
 		if self.running:
 			self.running=False
 		else:
-			self.delete()
-
-	def delete(self):
-		self.rmdl()
+			self.rmdl()
+			self.pool.removeMe(self.uid)
 
 	def describe(self):
 		return {

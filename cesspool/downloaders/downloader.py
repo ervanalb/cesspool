@@ -35,8 +35,6 @@ class Download:
 
 	def rmdl(self):
 		shutil.rmtree(self.dlpath)
-		self.pool.removeMeAsync(self.uid)
-
 
 class Downloader:
 	TYPE_STRING='download'

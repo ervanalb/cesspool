@@ -75,10 +75,8 @@ class Pool(object):
 		try:
 			self.lock.acquire()
 			result=cmd()
-		except Exception:
+		finally:
 			self.lock.release()
-			raise
-		self.lock.release()
 		return result
 
 	# Removes a download asynchronously

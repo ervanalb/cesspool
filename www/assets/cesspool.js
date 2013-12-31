@@ -49,7 +49,7 @@ Handlebars.registerHelper('round', function(x, options){
 
 Handlebars.registerHelper('percent', function(x, options){
     var of = parseInt(options.hash.of);
-    x = parseInt(x);
+    x = parseFloat(x);
     if(!of){
         of = 1;
     }

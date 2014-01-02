@@ -1,12 +1,13 @@
 import threading
 import time
+import os
 
 from downloaders.torrent import TorrentDownloader
 
 import json
 
 class Pool(object):
-	params={'directory':'../downloads','web_path':'downloads'}
+	params={'directory':os.path.join(os.path.dirname(__file__),'../downloads'),'web_path':'downloads'}
 	downloaders=[TorrentDownloader()]
 
 	def __init__(self):

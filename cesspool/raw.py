@@ -6,7 +6,7 @@ import json
 import readline
 
 if len(sys.argv)>1:
-	q=sys.argv[0]
+	q=sys.argv[1]
 else:
 	q='http://localhost:9500/cmd'
 

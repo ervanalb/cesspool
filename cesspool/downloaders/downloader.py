@@ -1,9 +1,12 @@
 import os
 import os.path
 import shutil
+from musicazoo.queue.module import Module
 
-class Download:
-	def __init__(self,parent,pool,uid,args,reinstantiate):
+class Download(Module):
+    log_prefix_node = "download-pool"
+
+	def __init__(self
 		self.uid=uid
 		self.parent=parent
 		self.pool=pool

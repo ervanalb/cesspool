@@ -1,0 +1,11 @@
+{
+    "fg_color":"#EBEBEB",
+    "bg_color":"#675098",
+    "name": "Cesspool",
+    "log_database": "$HOME/cesspool.db",
+    "static_path": "/home/zbanks/cesspool/www/",
+    "ports": {
+        "pool": 5680,
+        "wsgi": 5681
+    }
+}

@@ -1,11 +1,12 @@
 from downloader import Downloader,Download
+from musicazoo.queue import pymodule
 
 import libtorrent as lt
 import threading
 import time
 import base64
 
-class Torrent(Download,threading.Thread):
+class TorrentDownloader(pymodule.JSONParentPoller,threading.Thread):
 	def reinstantiate(self,state):
 		threading.Thread.__init__(self)
 		self.daemon=True
@@ -150,3 +151,4 @@ class TorrentDownloader(Downloader):
 	def restore_state(self,state):
 		pass
 
+dl = TorrentDownloader()

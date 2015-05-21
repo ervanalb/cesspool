@@ -1,11 +1,14 @@
 {
+    "public": ["fg_color", "bg_color", "name", "web_path"],
     "fg_color":"#EBEBEB",
-    "bg_color":"#675098",
+    "bg_color":"#E6D000",
     "name": "Cesspool",
     "log_database": "$HOME/cesspool.db",
-    "static_path": "/home/zbanks/cesspool/www/",
+    "static_path": "$HOME/cesspool/www/",
+    "download_path": "$HOME/cesspool/www/downloads",
+    "web_path": "/downloads",
     "ports": {
         "pool": 5680,
-        "wsgi": 5681
+        "wsgi": 8090
     }
 }

@@ -4,3 +4,4 @@ argparse==1.2.1
 requests==2.1.0
 wsgiref==0.1.2
 zope.interface==4.0.5
+shmooze==1.1.0

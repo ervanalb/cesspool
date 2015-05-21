@@ -1,41 +1,4 @@
-// Underscore mixins
-_.mixin(_.str.exports());
-_.mixin({
-    obj : function(op){
-        return function(obj, fn){
-            return _.chain(obj)[op](function(v, k){ return [k, fn(v)] }).object().value();
-        };
-    }
-});
-
-_.mixin({
-    objectMap : _.obj("map"),
-    objectFilter : _.obj("filter")
-});
-
-
 // Handlebars extras
-Handlebars.registerHelper('minutes', function(seconds){
-    var hours = Math.floor(seconds / 3600);
-    seconds %= 3600;
-    var minutes = Math.floor(seconds / 60);
-    seconds %= 60;
-    seconds = Math.floor(seconds);
-    if(hours){
-        return hours + ":" + _.lpad(minutes, 2, '0') + ":" + _.lpad(seconds, 2, '0');
-    }else{
-        return minutes + ":" + _.lpad(seconds, 2, '0');
-    }
-});
-
-Handlebars.registerHelper('add', function(x, options){
-    var v = x + parseInt(options.hash.v);
-    if(!v || v < 0){
-        return 0;
-    }
-    return v;
-});
-
 Handlebars.registerHelper('round', function(x, options){
     var dp = parseInt(options.hash.dp);
     x = parseFloat(x);
@@ -46,119 +9,30 @@ Handlebars.registerHelper('round', function(x, options){
     }
 });
 
-
-Handlebars.registerHelper('percent', function(x, options){
-    var of = parseInt(options.hash.of);
-    x = parseFloat(x);
-    if(!of){
-        of = 1;
-    }
-    if(x){
-        return Math.floor(x / of * 100);
-    }else{
-        return 0;
-    }
-});
-
-Handlebars.registerHelper('if_eq', function(x, options){
-    if(options.hash.eq){
-        if(x == options.hash.eq){
-            return options.fn(this);
-        }
-        return options.inverse(this);
-    }else{
-        if(x == options.hash.neq){
-            return options.inverse(this);
-        }
-        return options.fn(this);
-    }
-});
-
 DOWNLOAD_TEMPLATES = _.objectMap({"torrent": "torrent"}, function(n){
     return Handlebars.compile($("script." + n + "-template").html());
 });
 
-var _query_queue = [];
-var _runquery_timeout;
-//var BASE_URL = "http://localhost:9000/";
-var BASE_URL = "/cesspool/cmd";
-
-function deferQuery(data, cb, err){
-    _query_queue.push({"data": data, "cb": cb, "err": err});
-}
-
-function forceQuery(data, cb, err){
-    deferQuery(data, cb, err);
-    runQueries();
-}
-
-function runQueries(cb, err){
-    window.clearTimeout(_runquery_timeout);
-    if(_query_queue.length){
-        var cbs = _.pluck(_query_queue, "cb");
-        var errs = _.pluck(_query_queue, "cb");
-        var datas = _.pluck(_query_queue, "data");
-        $.ajax(BASE_URL, {
-            data: JSON.stringify(datas),
-            dataType: 'json',
-            contentType: 'text/json',
-            type: 'POST',
-            success: function(resp){
-                regainConnection();
-                if(resp.length != datas.length){ 
-                    console.error("Did not recieve correct number of responses from server!");
-                    return;
-                }
-                for(var i = 0; i < resp.length; i++){
-                    var r = resp[i];
-                    if(!r.success){
-                        console.error("Server Error:", r.error);
-                        if(errs[i]){
-                            errs[i]();
-                        }
-                    }else if(cbs[i]){
-                        cbs[i](r.result);
-                    }
-                }
-                if(cb){
-                    cb();
-                }
-                _runquery_timeout = window.setTimeout(runQueries, 0); // Defer
-            },
-            error: function(){
-                lostConnection();
-                _.each(errs, function(x){ if(x){ x(); } });
-                _runquery_timeout = window.setTimeout(runQueries, 500); // Connection dropped?
-                if(err){
-                    err();
-                }
-            }
-        });
-    }else{
-        _runquery_timeout = window.setTimeout(runQueries, 50);
-    }
-    _query_queue = [];
-}
-
-function regainConnection(){
-    $(".disconnect-hide").show();
-    $(".disconnect-show").hide();
-}
-
-function lostConnection(){
-    console.log("Lost connection");
-    $(".disconnect-show").show();
-    $(".disconnect-hide").hide();
-}
+var MODULES = {
+    "torrent": {
+        commands: ["pause", "resume"],
+        parameters: [
+            "magnet_url", "state", "error", "torrent_status", "name",
+            "progress", "started", "finished", "upload", "download",
+            "disk_path", "web_path"
+        ],
+    },
+};
+var module_capabilities = _.objectMap(MODULES, function(x){ return x.parameters });
 
 function authenticate(cb){
     var doAuth = function(){
         // Auth & get capabilities
         console.log("Trying to authenticate...");
-        deferQuery({cmd: "pool"}, function(pool){
+        pool_endpoint.deferQuery({cmd: "pool"}, function(pool){
             cb(pool);
         });
-        runQueries(function(){
+        pool_endpoint.runQueries(function(){
             //cb(caps);
             console.log("Authenticated!");
         }, function(){
@@ -171,6 +45,12 @@ function authenticate(cb){
 
 var refreshPool = function(){}; // Don't do anything, until we connect to the backend
 
+// Backbone 
+Backbone.sync = function(method, model, options){
+    // Replace default sync function to raise error unless overridden
+    console.error("unsupported sync");
+    console.log(method, model, options);
+}
 
 var Download = Backbone.Model.extend({
     defaults: function(){
@@ -183,10 +63,11 @@ var Download = Backbone.Model.extend({
     },
     sync: function(method, model, options){
         if(method == "read"){
-            deferQuery({cmd: "describe", args: {uid: this.id}}, options.success, options.error);
+            console.error("Cannot read individual download");
+            //pool_endpoint.deferQuery({cmd: "describe", args: {uid: this.id}}, options.success, options.error);
         }else if(method == "delete"){
             console.log("deleting", model)
-            deferQuery({cmd: "rm", args: {uid: this.id}});
+            pool_endpoint.deferQuery({cmd: "rm", args: {uids: [model.id]}}, options.success, options.error);
         }else{
             console.log("ERROR:", "Unable to perform action on download:" + method);
         }
@@ -194,27 +75,18 @@ var Download = Backbone.Model.extend({
     },
     parse: function(resp, options){
         if(resp){
-            /*
-            var attrs = {
-                status: resp.status,
-                uid: resp.uid,
-                url: resp.url,
-                torrent_status: resp.torrent_status,
-                error: resp.error,
-                progress: resp.progress,
-                type: resp.type
-            }
-            return attrs;
-            */
+            var attrs = {type: resp.type, uid: resp.uid, exists: true};
+            _.each(resp.parameters, function(v, k){ attrs[k] = v; });
             if(resp.upload && resp.download && !resp.ratio){
                 resp.ratio = resp.upload / resp.download;
             }
-            return resp;
+            return attrs;
         }else{
             return {};
         }
     },
     idAttribute: "uid",
+    comparator: "started",
 });
 
 var DownloadPool = Backbone.Collection.extend({
@@ -224,7 +96,7 @@ var DownloadPool = Backbone.Collection.extend({
             console.error("Can only read the pool");
             return;
         }
-        deferQuery({cmd: "pool"}, options.success, options.error);
+        pool_endpoint.deferQuery({cmd: "pool", args: {parameters: module_capabilities}}, options.success, options.error);
     },
     parse: function(resp, options){
         return resp;
@@ -334,8 +206,8 @@ $(document).ready(function(){
         if(!query){
             return false;
         }
-        deferQuery(
-            {cmd: "add", args: {type: "torrent", args: {url: query}}}, 
+        pool_endpoint.deferQuery(
+            {cmd: "add", args: {type: "torrent", args: {magnet_url: query}}}, 
             function(result){
                 console.log("Success adding torrent!", result);
                 refreshPool();
@@ -344,67 +216,4 @@ $(document).ready(function(){
         );
         return false; // Prevent form submitting
     });
-
-    /*
-    // This probably will be re-implemented later
-    $("#uploadform").submit(function(e){
-        var $this = $("#uploadform");
-        e.preventDefault();
-        var formData = new FormData($this[0]);
-        // Clear out the old file by replacing the DOM element.
-        // Super hacky, but works cross-browser
-        var fparent = $('input.uploadfile').parent();
-        fparent.html(fparent.html());
-        $this.hide();
-        var $progbar = $('div.upload-progress-bar')
-        $progbar.css('width', '3%');
-
-        $.ajax({
-            url: $this.attr('action'),  //server script to process data
-            type: 'POST',
-            xhr: function() {  // custom xhr
-                var myXhr = $.ajaxSettings.xhr();
-                if(myXhr.upload){ // check if upload property exists
-                    myXhr.upload.addEventListener('progress',function(pe){
-                            if(pe.lengthComputable){
-                                var progress = (pe.loaded / pe.total);
-                                $progbar.parent().show();
-                                $progbar.animate({width: $progbar.parent().width() * progress + 'px'});
-                            };
-                        }, false); // for handling the progress of the upload
-                }
-                return myXhr;
-            },
-            //Ajax events
-            //beforeSend: beforeSendHandler,
-            success: function(){
-                refreshPlaylist();
-                $('div.upload-progress').hide();
-                $this.show();
-            },
-            error: function(){
-                lostConnection();
-                $('div.upload-progress').hide();
-                $this.show();
-            },
-            // Form data
-            data: formData,
-            //Options to tell JQuery not to process data or worry about content-type
-            cache: false,
-            contentType: false,
-            processData: false
-        });
-        return false; // Prevent form submitting
-    });
-    */
-
-    $(".results").delegate("a.push", "click", function(){
-        var $this = $(this);
-        /*
-        $(".addtxt").val($this.attr("content"));
-        $(".results").html("");
-        $("#queueform").submit();
-        */
-    });
-
 });

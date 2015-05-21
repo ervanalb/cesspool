@@ -7,24 +7,24 @@
     <script type="text/javascript" src="./assets/jquery-ui.js"></script>
     <script type="text/javascript" src="./assets/backbone.js"></script>
     <script type="text/javascript" src="./assets/handlebars.js"></script>
+    <script type="text/javascript" src="./assets/shmooze.js"></script>
     <script type="text/javascript">
         window.no_autorefresh = false;
-        window.DE = false;
     </script>
     <script class="torrent-template" type="text/x-handlebars-template">
-        {{#if_eq status eq='complete'}}
-            <a class="get-it complete" href="/downloads/{{ uid }}/">{{ name }}</a>
-            <a href="{{ url }}">(torrent)</a>
+        {{#if_eq state eq='complete'}}
+            <a class="get-it complete" href="{{ web_path }}">{{ name }}</a>
+            <a href="{{ magnet_url }}">(torrent)</a>
             (ratio: {{ round ratio dp=2}})
         {{/if_eq}}
-        {{#if_eq status eq='error'}}
+        {{#if_eq state eq='error'}}
             <strong>Error: {{ error }}</strong>
-            <a class="get-it error" href="/downloads/{{ uid }}/">{{ name }}</a>
+            <a class="get-it error" href="{{ web_path }}">{{ name }}</a>
         {{/if_eq}}
         <a href="#" class="rm">&nbsp;</a>
-        {{#if_eq status eq="running"}}
-            <a class="get-it in-progress" href="/downloads/{{ uid }}/">{{ name }}</a>
-            <a href="{{ url }}">(torrent)</a>
+        {{#if_eq state eq="running"}}
+            <a class="get-it in-progress" href="{{ web_path }}">{{ name }}</a>
+            <a href="{{ magnet_url }}">(torrent)</a>
 
                 <div class="progress">
                     <div class="progress-bar" style="width: {{percent progress of=1}}%">

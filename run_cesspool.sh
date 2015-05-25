@@ -6,5 +6,7 @@ export PYTHONPATH=$PWD
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 python -m shmooze.wsgi &
-python -m cesspool.pool
+python -m cesspool.pool &
+cd www
+python -m SimpleHTTPServer 8091
 

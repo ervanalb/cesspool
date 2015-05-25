@@ -6,9 +6,10 @@
     "log_database": "$HOME/cesspool.db",
     "static_path": "$HOME/cesspool/www/",
     "download_path": "$HOME/cesspool/www/downloads",
-    "web_path": "/downloads",
+    "web_path": "http://localhost:8091/downloads",
     "ports": {
         "pool": 5680,
-        "wsgi": 8090
+        "wsgi": 8090,
+        "downloads": 8091
     }
 }

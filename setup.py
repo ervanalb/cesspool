@@ -10,7 +10,7 @@ from setuptools import setup
 with open("requirements.txt") as f:
     required = f.read().splitlines()
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 setup(
     name='cesspool',

@@ -198,6 +198,9 @@ authenticate(authCallback);
 
 $(document).ready(function(){
     cesspool.download_pool_view = new DownloadPoolView({collection: cesspool.download_pool, el: $("ul.pool")});
+    if(window.location.hash.length > 5){
+        $(".torrent-link").val(decodeURIComponent(window.location.hash.substring(1)));
+    }
 
     $(".torrent-form").submit(function(e){
         e.preventDefault();
@@ -205,6 +208,11 @@ $(document).ready(function(){
         $(".torrent-link").val("");
         if(!query){
             return false;
+        }
+        if(query == "install"){
+            window.location.hash = ""
+            navigator.registerProtocolHandler("magnet", window.location.href + "%s", "Cesspool");
+            return;
         }
         pool_endpoint.deferQuery(
             {cmd: "add", args: {type: "torrent", args: {magnet_url: query}}}, 
